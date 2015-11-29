@@ -44,7 +44,7 @@ func (c *Client) Connect() error {
     var conn net.Conn
     var err error
 
-    conn, err = net.Dial("tcp", c.Server)
+    conn, err = net.Dial("tcp", c.Server + ":" + c.Port)
 
     if err != nil {
         return err
