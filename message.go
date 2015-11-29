@@ -19,25 +19,6 @@ func crlfCutsetFunc(r rune) bool {
 	return r == '\r' || r == '\n'
 }
 
-/**
- * Prefix
- * 	Message starts with :
- *	Space indicates end of prefix
- *
- * Command
- * 	Follows prefix if there is one
- *	Space indicates end
- *
- *
- *	Args
- *		Middle
- *			Seperated by space
- *			: indicates end
- *		Trailing
- *			Anything after :
- *
- */
-
 func ParseMessage(raw string) *Message {
 	message := &Message{} 
 
