@@ -54,10 +54,12 @@ func (c *Client) Connect() error {
     c.reader = irc.NewDecoder(conn)
     c.writer = irc.NewEncoder(conn)
 
-    c.writer.Encode(&irc.Message{
-        Command: irc.PASS,
-        Params:  []string{c.Password},
-    })
+    if c.Password != "" {
+        c.writer.Encode(&irc.Message{
+            Command: irc.PASS,
+            Params:  []string{c.Password},
+        })
+    }
 
     c.writer.Encode(&irc.Message{
         Command: irc.NICK,
@@ -66,7 +68,7 @@ func (c *Client) Connect() error {
 
     c.writer.Encode(&irc.Message{
         Command: irc.USER,
-        Params:  []string{c.UserName, "0", "*"},
+        Params:  []string{c.Nick, c.UserName, "0", "*", ":" + c.Nick},
     })
 
     ch := make(chan error)
@@ -82,6 +84,23 @@ func (c *Client) listen(ch chan<- error) {
         if err != nil {
             ch <- err
             return
+        }
+
+        switch message.Command {
+        case irc.PING:
+            c.writer.Encode(&irc.Message{
+                Command: irc.PONG,
+                Params: []string{message.Trailing},
+            })
+
+        case irc.RPL_WELCOME:
+            ch <- nil
+            for _, channel := range c.Channels {
+                c.writer.Encode(&irc.Message{
+                    Command: irc.JOIN,
+                    Params: []string{channel},
+                })
+            }
         }
 
         fmt.Println(message.String())
