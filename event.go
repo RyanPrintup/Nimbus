@@ -1,17 +1,13 @@
 package nimbus
 
-import (
-    "github.com/sorcix/irc"
-)
-
-type Listener func(*irc.Message)
+type Listener func(*Message)
 
 func (c *Client) AddListener(e string, l Listener) {
-    c.listeners[e] = append(c.listeners[e], l)
+    c.Listeners[e] = append(c.Listeners[e], l)
 }
 
-func (c *Client) emit(e string, msg *irc.Message) {
-    for _, listener := range c.listeners[e] {
+func (c *Client) Emit(e string, msg *Message) {
+    for _, listener := range c.Listeners[e] {
         go listener(msg)
     }
 }

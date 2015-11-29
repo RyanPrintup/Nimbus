@@ -7,7 +7,7 @@ import (
 
 func (c *Client) Send(raw ...string) {
     message := irc.ParseMessage(strings.Join(raw, " "))
-    c.writer.Encode(message)
+    c.Writer.Write(message.Bytes())
 }
 
 func (c *Client) Say(channel string, text string) {
