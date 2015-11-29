@@ -7,20 +7,20 @@ import (
 )
 
 type IRCReader struct {
-	Reader *bufio.Reader
-	Mu sync.Mutex
+	reader *bufio.Reader
+	mu sync.Mutex
 }
 
 func NewIRCReader(reader io.Reader) *IRCReader {
 	return &IRCReader {
-		Reader: bufio.NewReader(reader),
+		reader: bufio.NewReader(reader),
 	}
 }
 
 func (r *IRCReader) ReadRaw() (string, error) {
-	r.Mu.Lock()
-	line, err := r.Reader.ReadString('\n')
-	r.Mu.Unlock()
+	r.mu.Lock()
+	line, err := r.reader.ReadString('\n')
+	r.mu.Unlock()
 
 	if err != nil {
 		return "", err
@@ -39,25 +39,27 @@ func (r *IRCReader) Read() (*Message, error) {
 }
 
 type IRCWriter struct {
-	Writer io.Writer
-	Mu sync.Mutex
+	writer io.Writer
+	mu sync.Mutex
 }
 
 func NewIRCWriter(writer io.Writer) *IRCWriter {
 	return &IRCWriter {
-		Writer: writer,
+		writer: writer,
 	}
 }
 
 func (w *IRCWriter) Write(packet []byte) error {
-	w.Mu.Lock()
+	w.mu.Lock()
 
-	_, err := w.Writer.Write(packet)
+	_, err := w.writer.Write(packet)
 	if err != nil {
-		w.Mu.Unlock()
+		w.mu.Unlock()
 		return err
 	}
 
-	w.Mu.Unlock()
+	w.writer.Write([]byte(ENDLINE))
+
+	w.mu.Unlock()
 	return nil
 }

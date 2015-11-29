@@ -12,8 +12,8 @@ type Client struct {
     Channels []string
 
     Conn     net.Conn
-    Writer   *IRCWriter
-    Reader   *IRCReader
+    writer   *IRCWriter
+    reader   *IRCReader
 
     Listeners map[string][]Listener
 
@@ -52,8 +52,8 @@ func (c *Client) Connect(callback func(error)) error {
     }
 
     c.Conn = conn
-    c.Reader = NewIRCReader(conn)
-    c.Writer = NewIRCWriter(conn)
+    c.reader = NewIRCReader(conn)
+    c.writer = NewIRCWriter(conn)
 
     if c.Password != "" {
         c.Send(irc.PASS, c.Password)
@@ -68,13 +68,13 @@ func (c *Client) Connect(callback func(error)) error {
 
 func (c *Client) register() error {
     for {
-        message, err := c.Reader.Read()
+        message, err := c.reader.Read()
+
+        fmt.Println(message.Command)
 
         if err != nil {
             return err
         }
-
-        fmt.Println(message.Raw)
 
         switch message.Command {
             case irc.PING:
@@ -91,7 +91,7 @@ func (c *Client) register() error {
 
 func (c *Client) Listen(ch chan<- error) error {
     for {
-        message, err := c.Reader.Read()
+        message, err := c.reader.Read()
 
         if err != nil {
             fmt.Println(err)
