@@ -11,16 +11,16 @@ type Client struct {
     Port     string
     Channels []string
 
-    conn   net.Conn
-    writer *irc.Encoder
-    reader *irc.Decoder
+    conn     net.Conn
+    writer   *irc.Encoder
+    reader   *irc.Decoder
+    listeners map[string][]Listener
 
     Nick     string
     RealName string
     UserName string
     Password string
 
-    // AutoConnect bool
     // AutoRejoin  bool
     // MaxRetries  int
 
@@ -31,6 +31,7 @@ func New(server, nick string, config Config) *Client {
     c := &Client{ Server:   server,
                Port:     config.Port,
                Channels: config.Channels,
+               listeners: make(map[string][]Listener),
 
                Nick:   nick,
                RealName: config.RealName,
@@ -40,7 +41,7 @@ func New(server, nick string, config Config) *Client {
     return c
 }
 
-func (c *Client) Connect() error {
+func (c *Client) Connect(callback func(error)) error {
     var conn net.Conn
     var err error
 
@@ -55,54 +56,53 @@ func (c *Client) Connect() error {
     c.writer = irc.NewEncoder(conn)
 
     if c.Password != "" {
-        c.writer.Encode(&irc.Message{
-            Command: irc.PASS,
-            Params:  []string{c.Password},
-        })
+        c.Send(irc.PASS, c.Password)
     }
 
-    c.writer.Encode(&irc.Message{
-        Command: irc.NICK,
-        Params:  []string{c.Nick},
-    })
+    c.Send(irc.NICK, c.Nick)
+    c.Send(irc.USER, c.Nick, c.UserName, "0", "*", ":" + c.Nick)
 
-    c.writer.Encode(&irc.Message{
-        Command: irc.USER,
-        Params:  []string{c.Nick, c.UserName, "0", "*", ":" + c.Nick},
-    })
-
-    ch := make(chan error)
-    go c.listen(ch)
-
-    return <- ch
+    callback(c.register())
+    return nil
 }
 
-func (c *Client) listen(ch chan<- error) {
+func (c *Client) register() error {
     for {
         message, err := c.reader.Decode()
 
         if err != nil {
-            ch <- err
-            return
-        }
-
-        switch message.Command {
-        case irc.PING:
-            c.writer.Encode(&irc.Message{
-                Command: irc.PONG,
-                Params: []string{message.Trailing},
-            })
-
-        case irc.RPL_WELCOME:
-            ch <- nil
-            for _, channel := range c.Channels {
-                c.writer.Encode(&irc.Message{
-                    Command: irc.JOIN,
-                    Params: []string{channel},
-                })
-            }
+            return err
         }
 
         fmt.Println(message.String())
+
+        switch message.Command {
+        case irc.PING:
+            c.Send(irc.PONG, message.Trailing)
+
+        case irc.RPL_WELCOME:
+            for _, channel := range c.Channels {
+                c.Send(irc.JOIN, channel)
+            }
+            return nil
+        }
+    }
+}
+
+func (c *Client) Listen(ch chan<- error) error {
+    for {
+        message, err := c.reader.Decode()
+
+        if err != nil {
+            fmt.Println(err)
+            return err
+        }
+
+        if message.Command == irc.PING {
+            c.Send(irc.PONG, message.Trailing)
+        }
+
+        fmt.Println(message.String())
+        c.emit(message.Command, message)
     }
 }
