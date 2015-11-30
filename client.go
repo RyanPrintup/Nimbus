@@ -12,9 +12,10 @@ type Client struct {
     Port     string
     Channels []string
 
-    conn     net.Conn
-    writer   *irc.Encoder
-    reader   *irc.Decoder
+    net.Conn
+    writer   *IRCWriter
+    reader   *IRCReader
+    
     Listeners map[string][]Listener
 
     Nick     string
@@ -28,6 +29,7 @@ type Client struct {
     // debug bool
 }
 
+<<<<<<< HEAD
 func New(server, nick string, config Config) *Client {
     c := &Client{ Server:   server,
                Port:     config.Port,
@@ -40,21 +42,34 @@ func New(server, nick string, config Config) *Client {
                Password: config.Password,
              }
     return c
+=======
+func NewClient(server string, nick string, config Config) *Client {
+    client := &Client{
+        Server:   server,
+        Port:     config.Port,
+        Channels: config.Channels,
+
+        Listeners: make(map[string][]Listener),
+
+        Nick:   nick,
+        RealName: config.RealName,
+        UserName: config.UserName,
+        Password: config.Password,
+    }
+    return client
+>>>>>>> 71b2d405597943afa6f49fceaf6a718d6eb8e99f
 }
 
 func (c *Client) Connect(callback func(error)) error {
-    var conn net.Conn
-    var err error
-
-    conn, err = net.Dial("tcp", c.Server + ":" + c.Port)
+    conn, err := net.Dial("tcp", c.Server + ":" + c.Port)
 
     if err != nil {
         return err
     }
 
-    c.conn = conn
-    c.reader = irc.NewDecoder(conn)
-    c.writer = irc.NewEncoder(conn)
+    c.Conn = conn
+    c.reader = NewIRCReader(conn)
+    c.writer = NewIRCWriter(conn)
 
     if c.Password != "" {
         c.Send(irc.PASS, c.Password)
@@ -69,30 +84,30 @@ func (c *Client) Connect(callback func(error)) error {
 
 func (c *Client) register() error {
     for {
-        message, err := c.reader.Decode()
+        message, err := c.reader.Read()
+
+        fmt.Println(message.Command)
 
         if err != nil {
             return err
         }
 
-        fmt.Println(message.String())
-
         switch message.Command {
-        case irc.PING:
-            c.Send(irc.PONG, message.Trailing)
+            case irc.PING:
+                c.Send(irc.PONG, message.Trailing)
 
-        case irc.RPL_WELCOME:
-            for _, channel := range c.Channels {
-                c.Send(irc.JOIN, channel)
-            }
-            return nil
+            case irc.RPL_WELCOME:
+                for _, channel := range c.Channels {
+                    c.Send(irc.JOIN, channel)
+                }
+                return nil
         }
     }
 }
 
 func (c *Client) Listen(ch chan<- error) error {
     for {
-        message, err := c.reader.Decode()
+        message, err := c.reader.Read()
 
         if err != nil {
             fmt.Println(err)
@@ -103,7 +118,7 @@ func (c *Client) Listen(ch chan<- error) error {
             c.Send(irc.PONG, message.Trailing)
         }
 
-        fmt.Println(message.String())
-        c.emit(message.Command, message)
+        fmt.Println(message.Raw)
+        c.Emit(message.Command, message)
     }
 }
