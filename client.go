@@ -4,6 +4,7 @@ import (
     "github.com/sorcix/irc"
     "net"
     "fmt"
+
 )
 
 type Client struct {
@@ -14,7 +15,7 @@ type Client struct {
     conn     net.Conn
     writer   *irc.Encoder
     reader   *irc.Decoder
-    listeners map[string][]Listener
+    Listeners map[string][]Listener
 
     Nick     string
     RealName string
@@ -31,7 +32,7 @@ func New(server, nick string, config Config) *Client {
     c := &Client{ Server:   server,
                Port:     config.Port,
                Channels: config.Channels,
-               listeners: make(map[string][]Listener),
+               Listeners: make(map[string][]Listener),
 
                Nick:   nick,
                RealName: config.RealName,
@@ -59,8 +60,8 @@ func (c *Client) Connect(callback func(error)) error {
         c.Send(irc.PASS, c.Password)
     }
 
-    c.Send(irc.NICK, c.Nick)
     c.Send(irc.USER, c.Nick, c.UserName, "0", "*", ":" + c.Nick)
+    c.Send(irc.NICK, c.Nick)
 
     callback(c.register())
     return nil
