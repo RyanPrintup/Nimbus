@@ -15,7 +15,7 @@ type Client struct {
     net.Conn
     writer   *IRCWriter
     reader   *IRCReader
-    
+
     Listeners map[string][]Listener
 
     Nick     string
@@ -29,20 +29,6 @@ type Client struct {
     // debug bool
 }
 
-<<<<<<< HEAD
-func New(server, nick string, config Config) *Client {
-    c := &Client{ Server:   server,
-               Port:     config.Port,
-               Channels: config.Channels,
-               Listeners: make(map[string][]Listener),
-
-               Nick:   nick,
-               RealName: config.RealName,
-               UserName: config.UserName,
-               Password: config.Password,
-             }
-    return c
-=======
 func NewClient(server string, nick string, config Config) *Client {
     client := &Client{
         Server:   server,
@@ -57,7 +43,6 @@ func NewClient(server string, nick string, config Config) *Client {
         Password: config.Password,
     }
     return client
->>>>>>> 71b2d405597943afa6f49fceaf6a718d6eb8e99f
 }
 
 func (c *Client) Connect(callback func(error)) error {
