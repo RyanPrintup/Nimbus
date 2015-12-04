@@ -3,7 +3,6 @@ package nimbus
 import (
 	"strings"
 	"errors"
-	"fmt"
 )
 
 const (
@@ -30,7 +29,6 @@ func ParseMessage(raw string) (*Message, error) {
 	message := &Message{} 
 
 	message.Raw = raw
-	fmt.Println(raw)
 
 	// Check if message is empty
 	if raw = strings.TrimFunc(raw, crlfCutsetFunc); len(raw) < 2 {
@@ -46,10 +44,9 @@ func ParseMessage(raw string) (*Message, error) {
 
 	// Grab command
 	message.Command = strings.Split(raw, " ")[0]
-	raw = raw[strings.Index(raw, " ") : len(raw)]
+	raw = raw[strings.Index(raw, " ") + 1 : len(raw)]
 
 	// Check if there is trailing data or just a middle
-	fmt.Println(message.Raw)
 	if strings.Contains(raw, " :") {
 		s := strings.Split(raw, ":")
 		message.Middle, message.Trailing = s[0][0 : len(s[0]) - 1], s[1]
@@ -61,10 +58,9 @@ func ParseMessage(raw string) (*Message, error) {
 	if len(message.Middle) > 0 {
 		message.Args = strings.Split(message.Middle, " ")
 	}
-
 	// If trailing, append data to args
 	if len(message.Trailing) > 0 {
-		message.Args = append(message.Args, strings.Split(message.Trailing, " ")...)
+		message.Args = append(message.Args, message.Trailing)
 	}
 
 	return message, nil
