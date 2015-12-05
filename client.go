@@ -1,10 +1,8 @@
 package nimbus
 
 import (
-    "github.com/sorcix/irc"
     "net"
     "fmt"
-
 )
 
 type Client struct {
@@ -12,11 +10,11 @@ type Client struct {
     Port     string
     Channels []string
 
-    net.Conn
+    conn      net.Conn
     writer   *IRCWriter
     reader   *IRCReader
 
-    Listeners map[string][]Listener
+    listeners map[string][]Listener
 
     Nick     string
     RealName string
@@ -35,7 +33,7 @@ func NewClient(server string, nick string, config Config) *Client {
         Port:     config.Port,
         Channels: config.Channels,
 
-        Listeners: make(map[string][]Listener),
+        listeners: make(map[string][]Listener),
 
         Nick:   nick,
         RealName: config.RealName,
@@ -52,16 +50,16 @@ func (c *Client) Connect(callback func(error)) error {
         return err
     }
 
-    c.Conn = conn
+    c.conn = conn
     c.reader = NewIRCReader(conn)
     c.writer = NewIRCWriter(conn)
 
     if c.Password != "" {
-        c.Send(irc.PASS, c.Password)
+        c.Send(PASS, c.Password)
     }
 
-    c.Send(irc.USER, c.Nick, c.UserName, "0", "*", ":" + c.Nick)
-    c.Send(irc.NICK, c.Nick)
+    c.Send(USER, c.Nick, c.UserName, "0", "*", ":" + c.Nick)
+    c.Send(NICK, c.Nick)
 
     callback(c.register())
     return nil
@@ -78,12 +76,12 @@ func (c *Client) register() error {
         }
 
         switch message.Command {
-            case irc.PING:
-                c.Send(irc.PONG, message.Trailing)
+            case PING:
+                c.Send(PONG, message.Trailing)
 
-            case irc.RPL_WELCOME:
+            case RPL_WELCOME:
                 for _, channel := range c.Channels {
-                    c.Send(irc.JOIN, channel)
+                    c.Send(JOIN, channel)
                 }
                 return nil
         }
@@ -99,8 +97,8 @@ func (c *Client) Listen(ch chan<- error) error {
             return err
         }
 
-        if message.Command == irc.PING {
-            c.Send(irc.PONG, message.Trailing)
+        if message.Command == PING {
+            c.Send(PONG, message.Trailing)
         }
 
         fmt.Println(message.Raw)

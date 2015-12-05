@@ -2,12 +2,12 @@ package nimbus
 
 type Listener func(*Message)
 
-func (c *Client) AddListener(e string, l Listener) {
-    c.Listeners[e] = append(c.Listeners[e], l)
+func (c *Client) AddListener(event string, l Listener) {
+    c.Listeners[event] = append(c.Listeners[event], l)
 }
 
-func (c *Client) Emit(e string, msg *Message) {
-    for _, listener := range c.Listeners[e] {
+func (c *Client) Emit(event string, msg *Message) {
+    for _, listener := range c.Listeners[event] {
         go listener(msg)
     }
 }
