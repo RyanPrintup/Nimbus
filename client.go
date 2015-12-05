@@ -3,7 +3,7 @@ package nimbus
 import (
     "net"
     "fmt"
-    'strings'
+    "string"
 )
 
 type Client struct {
