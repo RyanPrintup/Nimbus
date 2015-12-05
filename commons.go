@@ -149,7 +149,7 @@ const (
 	RPL_REHASHING       = 382
 	RPL_TIME            = 391
 	RPL_USERSTART       = 392
-	RPL_USERS           = 3923
+	RPL_USERS           = 393
 	RPL_ENDOFUSERS      = 394
 	RPL_NOUSERS         = 395
 	RPL_TRACELINK       = 200
