@@ -3,6 +3,7 @@ package nimbus
 import (
     "net"
     "fmt"
+    'strings'
 )
 
 type Client struct {
@@ -61,31 +62,7 @@ func (c *Client) Connect(callback func(error)) error {
     c.Send(USER, c.Nick, c.UserName, "0", "*", ":" + c.Nick)
     c.Send(NICK, c.Nick)
 
-    callback(c.register())
     return nil
-}
-
-func (c *Client) register() error {
-    for {
-        message, err := c.reader.Read()
-
-        fmt.Println(message.Command)
-
-        if err != nil {
-            return err
-        }
-
-        switch message.Command {
-            case PING:
-                c.Send(PONG, message.Trailing)
-
-            case RPL_WELCOME:
-                for _, channel := range c.Channels {
-                    c.Send(JOIN, channel)
-                }
-                return nil
-        }
-    }
 }
 
 func (c *Client) Listen(ch chan<- error) error {
@@ -97,11 +74,26 @@ func (c *Client) Listen(ch chan<- error) error {
             return err
         }
 
-        if message.Command == PING {
-            c.Send(PONG, message.Trailing)
+        switch message.Command {
+            case PING:
+                c.Send(PONG, message.Trailing)
+            case RPL_WELCOME:
+                for _, channel := range c.Channels {
+                    c.Send(JOIN, channel)
+                }
+
         }
 
         fmt.Println(message.Raw)
         c.Emit(message.Command, message)
     }
+}
+
+func (c *Client) Send(raw ...string) {
+    message := ParseMessage(strings.Join(raw, " "))
+    c.writer.Write(message.Bytes())
+}
+
+func (c *Client) Say(channel string, text string) {
+    c.Send(PRIVMSG, channel, text)
 }
