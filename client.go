@@ -48,6 +48,7 @@ func (c *Client) Connect(callback func(error)) error {
 	conn, err := net.Dial("tcp", c.Server+":"+c.Port)
 
 	if err != nil {
+		callback(err)
 		return err
 	}
 
@@ -61,6 +62,8 @@ func (c *Client) Connect(callback func(error)) error {
 
 	c.Send(USER, c.Nick, c.UserName, "0", "*", ":"+c.Nick)
 	c.Send(NICK, c.Nick)
+
+	callback(nil)
 
 	return nil
 }
@@ -76,7 +79,7 @@ func (c *Client) Listen(ch chan<- error) error {
 
 		switch message.Command {
 		case PING:
-			c.Send(PONG, message.Trailing)
+			c.Send(PONG, message.Args[0])
 		case RPL_WELCOME:
 			for _, channel := range c.Channels {
 				c.Send(JOIN, channel)
