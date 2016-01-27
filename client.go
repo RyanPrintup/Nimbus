@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"strings"
+	"sync"
 )
 
 type Client struct {
@@ -21,6 +22,8 @@ type Client struct {
 	RealName string
 	UserName string
 	Password string
+
+	wg       sync.WaitGroup
 
 	// AutoRejoin  bool
 	// MaxRetries  int
@@ -40,6 +43,8 @@ func NewClient(server string, nick string, config Config) *Client {
 		RealName: config.RealName,
 		UserName: config.UserName,
 		Password: config.Password,
+
+		wg: sync.WaitGroup{},
 	}
 	return client
 }
