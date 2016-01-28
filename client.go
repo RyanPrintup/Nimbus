@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net"
 	"strings"
-	"sync"
 )
 
 type Client struct {
@@ -23,7 +22,7 @@ type Client struct {
 	UserName string
 	Password string
 
-	wg       sync.WaitGroup
+	Quit chan error
 
 	// AutoRejoin  bool
 	// MaxRetries  int
@@ -44,7 +43,7 @@ func NewClient(server string, nick string, config Config) *Client {
 		UserName: config.UserName,
 		Password: config.Password,
 
-		wg: sync.WaitGroup{},
+		Quit: make(chan error),
 	}
 	return client
 }
@@ -73,18 +72,19 @@ func (c *Client) Connect(callback func(error)) error {
 	return nil
 }
 
-func (c *Client) Listen(ch chan<- error) error {
+func (c *Client) Listen() {
 	for {
 		message, err := c.reader.Read()
 
 		if err != nil {
 			fmt.Println(err)
-			return err
+			c.Quit <- err
+			return
 		}
 
 		switch message.Command {
 		case PING:
-			c.Send(PONG, message.Args[0])
+			c.Send(PONG, message.Trailing)
 		case RPL_WELCOME:
 			for _, channel := range c.Channels {
 				c.Send(JOIN, channel)
@@ -92,7 +92,7 @@ func (c *Client) Listen(ch chan<- error) error {
 
 		}
 
-		fmt.Println(message.Raw)
+		fmt.Print(message.Raw)
 		c.Emit(message.Command, message)
 	}
 }
