@@ -15,6 +15,14 @@ var testMessages = [...]*Message {
 		Trailing: "",
 	},
 	&Message{
+		Raw: "PING :aohIO^SSQl",
+		Prefix: "",
+		Command: "PING",
+		Args: []string{ "aohIO^SSQl" },
+		Middle: "",
+		Trailing: "aohIO^SSQl",
+	},
+	&Message{
 		Raw: ":Nimbus PRIVMSG #test :Test response",
 		Prefix: "Nimbus",
 		Command: "PRIVMSG",

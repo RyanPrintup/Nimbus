@@ -21,12 +21,17 @@ type Message struct {
 	Trailing string
 }
 
+func splitInTwo(s, sep string) (string, string) {
+    x := strings.SplitN(s, sep, 2)
+    return x[0], x[1]
+}
+
 func crlfCutsetFunc(r rune) bool {
 	return r == '\r' || r == '\n'
 }
 
 func ParseMessage(raw string) (*Message, error) {
-	message := &Message{} 
+	message := &Message{}
 
 	message.Raw = raw
 
@@ -37,29 +42,31 @@ func ParseMessage(raw string) (*Message, error) {
 
 	// If prefix is present extract
 	if raw[0] == ':' {
-		prefix := strings.Split(raw, " ")
-		message.Prefix = prefix[0][1 : len(prefix[0])]
-		raw = raw[strings.Index(raw, " ") + 1 : len(raw)]
+		prefix := strings.SplitN(raw, " ", 2)
+		message.Prefix, raw = prefix[0][1:], prefix[1]
 	}
 
 	// Grab command
-	message.Command = strings.Split(raw, " ")[0]
-	raw = raw[strings.Index(raw, " ") + 1 : len(raw)]
+	message.Command, _ = splitInTwo(raw, " ")
+	raw = strings.SplitAfterN(raw, message.Command, 2)[1]
 
 	// Check if there is trailing data or just a middle
 	if strings.Contains(raw, " :") {
-		s := strings.Split(raw, ":")
-		message.Middle, message.Trailing = s[0][0 : len(s[0]) - 1], s[1]
+		message.Middle, message.Trailing = splitInTwo(raw, " :")
 	} else {
 		message.Middle = raw
 	}
 
-	// If middle, extract data to args
-	if len(message.Middle) > 0 {
+	// Middle will have some leading whitespace due to command extraction
+	message.Middle = strings.TrimLeft(message.Middle, " ")
+
+	// If middle, split into args
+	if message.Middle != "" {
 		message.Args = strings.Split(message.Middle, " ")
 	}
-	// If trailing, append data to args
-	if len(message.Trailing) > 0 {
+
+	// If trailing, append to args
+	if message.Trailing != "" {
 		message.Args = append(message.Args, message.Trailing)
 	}
 
