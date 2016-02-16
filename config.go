@@ -7,4 +7,5 @@ type Config struct {
     RealName string
     UserName string
     Password string
+    Modes    string
 }

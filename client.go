@@ -21,6 +21,7 @@ type Client struct {
 	RealName string
 	UserName string
 	Password string
+	Modes    string
 
 	Quit chan error
 
@@ -42,6 +43,7 @@ func NewClient(server string, nick string, config Config) *Client {
 		RealName: config.RealName,
 		UserName: config.UserName,
 		Password: config.Password,
+		Modes: config.Modes,
 
 		Quit: make(chan error),
 	}
@@ -87,6 +89,7 @@ func (c *Client) Listen() {
 			c.Send(PONG, message.Trailing)
 		case RPL_WELCOME:
 			for _, channel := range c.Channels {
+				c.Send(MODE, c.Nick, c.Modes)
 				c.Send(JOIN, channel)
 			}
 
