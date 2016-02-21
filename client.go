@@ -9,7 +9,7 @@ import (
 type Client struct {
 	Server   string
 	Port     string
-	Channels []string
+	channels []string
 
 	conn   net.Conn
 	writer *IRCWriter
@@ -17,13 +17,13 @@ type Client struct {
 
 	listeners map[string][]Listener
 
-	Nick     string
+	nick     string
 	RealName string
 	UserName string
 	Password string
 	Modes    string
 
-	Quit chan error
+	quit chan error
 
 	// AutoRejoin  bool
 	// MaxRetries  int
@@ -35,19 +35,27 @@ func NewClient(server string, nick string, config Config) *Client {
 	client := &Client{
 		Server:   server,
 		Port:     config.Port,
-		Channels: config.Channels,
+		channels: config.Channels,
 
 		listeners: make(map[string][]Listener),
 
-		Nick:     nick,
+		nick:     nick,
 		RealName: config.RealName,
 		UserName: config.UserName,
 		Password: config.Password,
-		Modes: config.Modes,
+		Modes:    config.Modes,
 
-		Quit: make(chan error),
+		quit: make(chan error),
 	}
 	return client
+}
+
+func (c *Client) GetNick() string {
+	return c.nick
+}
+
+func (c *Client) GetChannels() []string {
+	return c.channels
 }
 
 func (c *Client) Connect(callback func(error)) error {
@@ -66,12 +74,16 @@ func (c *Client) Connect(callback func(error)) error {
 		c.Send(PASS, c.Password)
 	}
 
-	c.Send(USER, c.Nick, c.UserName, "0", "*", ":"+c.Nick)
-	c.Send(NICK, c.Nick)
+	c.Send(USER, c.nick, c.UserName, "0", "*", ":"+c.nick)
+	c.Send(NICK, c.nick)
 
 	callback(nil)
 
 	return nil
+}
+
+func (c *Client) Quit() chan error {
+	return c.quit
 }
 
 func (c *Client) Listen() {
@@ -80,7 +92,7 @@ func (c *Client) Listen() {
 
 		if err != nil {
 			fmt.Println(err)
-			c.Quit <- err
+			c.quit <- err
 			return
 		}
 
@@ -88,8 +100,8 @@ func (c *Client) Listen() {
 		case PING:
 			c.Send(PONG, message.Trailing)
 		case RPL_WELCOME:
-			for _, channel := range c.Channels {
-				c.Send(MODE, c.Nick, c.Modes)
+			for _, channel := range c.channels {
+				c.Send(MODE, c.nick, c.Modes)
 				c.Send(JOIN, channel)
 			}
 
