@@ -51,15 +51,14 @@ func NewIRCWriter(writer io.Writer) *IRCWriter {
 
 func (w *IRCWriter) Write(packet []byte) error {
 	w.mu.Lock()
+	defer w.mu.Unlock()
 
 	_, err := w.writer.Write(packet)
 	if err != nil {
-		w.mu.Unlock()
 		return err
 	}
 
 	w.writer.Write([]byte(ENDLINE))
 
-	w.mu.Unlock()
 	return nil
 }
