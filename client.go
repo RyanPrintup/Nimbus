@@ -58,17 +58,15 @@ func (c *Client) GetChannels() []string {
 	return c.channels
 }
 
-func (c *Client) Connect(callback func(error)) error {
-	conn, err := net.Dial("tcp", c.Server+":"+c.Port)
+func (c *Client) Connect() (err error) {
+	c.conn, err = net.Dial("tcp", c.Server+":"+c.Port)
 
 	if err != nil {
-		callback(err)
 		return err
 	}
 
-	c.conn = conn
-	c.reader = NewIRCReader(conn)
-	c.writer = NewIRCWriter(conn)
+	c.reader = NewIRCReader(c.conn)
+	c.writer = NewIRCWriter(c.conn)
 
 	if c.Password != "" {
 		c.Send(PASS, c.Password)
@@ -76,8 +74,6 @@ func (c *Client) Connect(callback func(error)) error {
 
 	c.Send(USER, c.nick, c.UserName, "0", "*", ":"+c.nick)
 	c.Send(NICK, c.nick)
-
-	callback(nil)
 
 	return nil
 }
@@ -96,7 +92,7 @@ func (c *Client) Listen() {
 			return
 		}
 
-		switch message.Command {
+		switch message.Command {		
 		case PING:
 			c.Send(PONG, message.Trailing)
 		case RPL_WELCOME:
@@ -104,7 +100,6 @@ func (c *Client) Listen() {
 				c.Send(MODE, c.nick, c.Modes)
 				c.Send(JOIN, channel)
 			}
-
 		}
 
 		fmt.Print(message.Raw)
