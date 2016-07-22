@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net"
 	"strings"
+
+	"gopkg.in/sorcix/irc.v1"
 )
 
 type Client struct {
@@ -12,8 +14,8 @@ type Client struct {
 	channels []string
 
 	conn   net.Conn
-	writer *IRCWriter
-	reader *IRCReader
+	writer *irc.Encoder
+	reader *irc.Decoder
 
 	listeners map[string][]Listener
 
@@ -65,8 +67,8 @@ func (c *Client) Connect() (err error) {
 		return err
 	}
 
-	c.reader = NewIRCReader(c.conn)
-	c.writer = NewIRCWriter(c.conn)
+	c.reader = irc.NewDecoder(c.conn)
+	c.writer = irc.NewEncoder(c.conn)
 
 	if c.Password != "" {
 		c.Send(PASS, c.Password)
@@ -84,7 +86,7 @@ func (c *Client) Quit() chan error {
 
 func (c *Client) Listen() {
 	for {
-		message, err := c.reader.Read()
+		message, err := c.reader.Decode()
 
 		if err != nil {
 			fmt.Println(err)
@@ -92,24 +94,24 @@ func (c *Client) Listen() {
 			return
 		}
 
-		switch message.Command {		
-		case PING:
+		switch message.Command {
+		case irc.PING:
 			c.Send(PONG, message.Trailing)
-		case RPL_WELCOME:
+		case irc.RPL_WELCOME:
 			for _, channel := range c.channels {
 				c.Send(MODE, c.nick, c.Modes)
 				c.Send(JOIN, channel)
 			}
 		}
 
-		fmt.Print(message.Raw)
+		fmt.Print(message.String())
 		c.Emit(message.Command, message)
 	}
 }
 
 func (c *Client) Send(raw ...string) {
-	message, _ := ParseMessage(strings.Join(raw, " "))
-	c.writer.Write(message.Bytes())
+	message := irc.ParseMessage(strings.Join(raw, " "))
+	c.writer.Encode(message)
 }
 
 func (c *Client) Say(channel string, text string) {
