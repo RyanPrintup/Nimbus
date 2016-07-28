@@ -71,11 +71,11 @@ func (c *Client) Connect() (err error) {
 	c.writer = irc.NewEncoder(c.conn)
 
 	if c.Password != "" {
-		c.Send(PASS, c.Password)
+		c.Send(irc.PASS, c.Password)
 	}
 
-	c.Send(USER, c.nick, c.UserName, "0", "*", ":"+c.nick)
-	c.Send(NICK, c.nick)
+	c.Send(irc.USER, c.nick, c.UserName, "0", "*", ":"+c.nick)
+	c.Send(irc.NICK, c.nick)
 
 	return nil
 }
@@ -96,15 +96,17 @@ func (c *Client) Listen() {
 
 		switch message.Command {
 		case irc.PING:
-			c.Send(PONG, message.Trailing)
+			c.Send(irc.PONG, message.Trailing)
 		case irc.RPL_WELCOME:
 			for _, channel := range c.channels {
-				c.Send(MODE, c.nick, c.Modes)
-				c.Send(JOIN, channel)
+				c.Send(irc.MODE, c.nick, c.Modes)
+				c.Send(irc.JOIN, channel)
 			}
 		}
 
-		fmt.Print(message.String())
+		fmt.Println(message.String())
+		fmt.Println(message.Trailing)
+		fmt.Println(message.Params)
 		c.Emit(message.Command, message)
 	}
 }
@@ -115,5 +117,5 @@ func (c *Client) Send(raw ...string) {
 }
 
 func (c *Client) Say(channel string, text string) {
-	c.Send(PRIVMSG, channel, text)
+	c.Send(irc.PRIVMSG, channel, ":"+text)
 }
