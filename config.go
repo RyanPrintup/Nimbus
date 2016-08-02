@@ -1,11 +1,13 @@
 package nimbus
 
+// Config for Nimbus
 type Config struct {
-    Port     string
-    Channels []string
+	Channels []string
 
-    RealName string
-    UserName string
-    Password string
-    Modes    string
+	RealName string
+	UserName string
+	Password string
+	Modes    string
+
+	Debug int
 }
