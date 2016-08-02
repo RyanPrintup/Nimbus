@@ -13,7 +13,7 @@ primary purpose is to be used as an IRC backbone for a more sophisticated client
 
 As a matter of fact, this library was mainly made to serve as the backbone of the [Rain](https://github.com/raindevteam/rain) package.
 Rain is somewhat of a framework for creating IRC bots with extra functionality, analogous to taking
-a jackhammer to IRC, if Nimbus is a simple hammer.
+a jackhammer to IRC, if Nimbus were a simple hammer.
 
 If you're looking for something simple like Nimbus, but more standalone-ish (or well tested
 and feature rich), we recommend using [ircx](https://github.com/nickvanw/ircx), especially if you need TLS.
