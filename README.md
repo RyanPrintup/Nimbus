@@ -37,8 +37,8 @@ import (
 )
 
 func main() {
-	client := nimbus.NewClient("irc.canternet.org", "6667", "NimbusBot", nimbus.Config{
-		Channels: []string{"#RainBot"},
+	client := nimbus.NewClient("irc.examplehost.net", "6667", "NimbusBot", nimbus.Config{
+		Channels: []string{"#your", "channels"},
 		RealName: "Not Nimbus IRC Client",
 		UserName: "Fabuloso",
 		Debug:    1, // This is the debug level
