@@ -19,7 +19,7 @@ If you're looking for something simple like Nimbus, but more standalone-ish (or 
 and feature rich), we recommend using [ircx](https://github.com/nickvanw/ircx), especially if you need TLS.
 Giving credit where its due, ircx was a heavy inspiration for Nimbus.
 
-Also many thanks to @sorcix for his [irc package](https://github.com/sorcix/irc) 
+Also many thanks to sorcix for his [irc package](https://github.com/sorcix/irc) 
 
 ### Example Usage
 
