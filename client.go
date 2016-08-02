@@ -117,7 +117,7 @@ func (c *Client) Quit() chan error {
 // Also, if the debug level is 1, it will print the received IRC message. If debug level is 2, it
 // will also print the parsed params and trailing (mostly used for debugging purposes).
 func (c *Client) Listen() {
-	c.listenLoop()
+	go c.listenLoop()
 }
 
 func (c *Client) listenLoop() {
