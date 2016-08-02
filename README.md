@@ -48,7 +48,7 @@ func main() {
 		to := msg.Params[0]
 
 		if to == client.GetNick() {
-			to = msg.Params[1]
+			to = msg.Prefix.Name
 		}
 
 		if strings.ToLower(msg.Trailing) == "hello nimbusbot" {
