@@ -110,11 +110,9 @@ func (c *Client) Quit() chan error {
 // Listen will start the listen loop. The listen loop first reads a message from the IRC server, it
 // then checks one of two things:
 //
-// A. Is a PING from the IRC server
-// If it is a ping, the client will pong.
+// A. Is a PING from the IRC server - Then the client will pong.
 //
-// B. Is a RPL_WELCOME
-// If it's the welcome message, we'll send our mode and join all channels found in the config.
+// B. Is a RPL_WELCOME - We'll send our mode and join all channels found in the config.
 //
 // Also, if the debug level is 1, it will print the received IRC message. If debug level is 2, it
 // will also print the parsed params and trailing (mostly used for debugging purposes).

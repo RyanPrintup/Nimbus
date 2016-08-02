@@ -7,7 +7,7 @@ func (c *Client) SetLogFlags(flags int) {
 	log.SetFlags(flags)
 }
 
-// Lprintln will log a message if level if greater than or equal to debug.
+// Lprintln will log a message if level if less than or equal to debug.
 func (c *Client) Lprintln(level int, message string) {
 	c.Lprintf(level, message+"\n")
 }
