@@ -11,7 +11,7 @@ type Handle struct {
 	done     chan bool
 }
 
-// Run will call backk on the done channel for handle and thereafter run its listener function.
+// Run will call back on the done channel for handle and thereafter run its listener function.
 func (h *Handle) Run(msg *irc.Message) {
 	h.done <- true
 	h.listener(msg)
